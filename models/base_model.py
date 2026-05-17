@@ -8,10 +8,26 @@ class BaseModel:
     """Base class that defines common attributes/methods for other classes."""
 
     def __init__(self, *args, **kwargs):
-        """Initialize a new BaseModel instance."""
-        self.id = str(uuid.uuid4())
-        self.created_at = datetime.now()
-        self.updated_at = datetime.now()
+        """Initialize a new BaseModel instance.
+
+        When kwargs is provided, recreate the instance from a dictionary
+        representation; otherwise generate a new id and timestamps and
+        register the instance with the storage engine.
+        """
+        if kwargs:
+            for key, value in kwargs.items():
+                if key == "__class__":
+                    continue
+                if key in ("created_at", "updated_at") and isinstance(
+                        value, str):
+                    value = datetime.fromisoformat(value)
+                setattr(self, key, value)
+        else:
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.now()
+            self.updated_at = datetime.now()
+            from models import storage
+            storage.new(self)
 
     def __str__(self):
         """Return the informal string representation of the instance."""
@@ -19,8 +35,10 @@ class BaseModel:
             type(self).__name__, self.id, self.__dict__)
 
     def save(self):
-        """Update updated_at with the current datetime."""
+        """Update updated_at and persist the change through storage."""
         self.updated_at = datetime.now()
+        from models import storage
+        storage.save()
 
     def to_dict(self):
         """Return a dictionary representation of the instance."""
