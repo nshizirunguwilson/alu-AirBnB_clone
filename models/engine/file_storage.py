@@ -49,10 +49,13 @@ class FileStorage:
             "Place": Place,
             "Review": Review,
         }
-        with open(FileStorage.__file_path, "r", encoding="utf-8") as fp:
-            data = json.load(fp)
+        try:
+            with open(FileStorage.__file_path, "r", encoding="utf-8") as fp:
+                data = json.load(fp)
+        except (json.JSONDecodeError, OSError):
+            return
         for key, value in data.items():
-            cls_name = value.get("__class__")
+            cls_name = value.get("__class__") if isinstance(value, dict) else None
             cls = classes.get(cls_name)
             if cls is not None:
                 FileStorage.__objects[key] = cls(**value)
