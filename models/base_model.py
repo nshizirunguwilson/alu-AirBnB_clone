@@ -20,8 +20,11 @@ class BaseModel:
                     continue
                 if key in ("created_at", "updated_at") and isinstance(
                         value, str):
-                    value = datetime.strptime(
-                        value, "%Y-%m-%dT%H:%M:%S.%f")
+                    try:
+                        value = datetime.fromisoformat(value)
+                    except (ValueError, AttributeError):
+                        value = datetime.strptime(
+                            value, "%Y-%m-%dT%H:%M:%S.%f")
                 setattr(self, key, value)
         else:
             self.id = str(uuid.uuid4())

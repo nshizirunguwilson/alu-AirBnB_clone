@@ -58,5 +58,9 @@ class FileStorage:
             if not isinstance(value, dict):
                 continue
             cls = classes.get(value.get("__class__"))
-            if cls is not None:
+            if cls is None:
+                continue
+            try:
                 FileStorage.__objects[key] = cls(**value)
+            except (TypeError, ValueError):
+                continue
