@@ -55,7 +55,8 @@ class FileStorage:
         except (json.JSONDecodeError, OSError):
             return
         for key, value in data.items():
-            cls_name = value.get("__class__") if isinstance(value, dict) else None
-            cls = classes.get(cls_name)
+            if not isinstance(value, dict):
+                continue
+            cls = classes.get(value.get("__class__"))
             if cls is not None:
                 FileStorage.__objects[key] = cls(**value)
