@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 """Unit tests for the BaseModel class."""
+import json
+import os
 import unittest
 import uuid
 from datetime import datetime
@@ -41,6 +43,17 @@ class TestBaseModel(unittest.TestCase):
         sleep(0.01)
         model.save()
         self.assertGreater(model.updated_at, first)
+
+    def test_save_persists_to_storage(self):
+        """save() persists the instance to the JSON file via storage."""
+        if os.path.isfile("file.json"):
+            os.remove("file.json")
+        model = BaseModel()
+        model.save()
+        self.assertTrue(os.path.isfile("file.json"))
+        with open("file.json", "r", encoding="utf-8") as fp:
+            data = json.load(fp)
+        self.assertIn("BaseModel.{}".format(model.id), data)
 
     def test_to_dict_contains_class_key(self):
         """to_dict includes __class__ with the class name."""

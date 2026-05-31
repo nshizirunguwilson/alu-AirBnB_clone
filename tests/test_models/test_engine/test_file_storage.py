@@ -14,7 +14,7 @@ class TestFileStorage(unittest.TestCase):
 
     def setUp(self):
         """Reset the in-memory store and remove any persisted file."""
-        FileStorage._FileStorage__objects = {}
+        storage.all().clear()
         if os.path.isfile("file.json"):
             os.remove("file.json")
 
@@ -25,6 +25,12 @@ class TestFileStorage(unittest.TestCase):
 
     def test_storage_is_file_storage_instance(self):
         self.assertIsInstance(storage, FileStorage)
+
+    def test_file_path_is_string(self):
+        self.assertEqual(FileStorage._FileStorage__file_path, "file.json")
+
+    def test_objects_is_dict(self):
+        self.assertIsInstance(FileStorage._FileStorage__objects, dict)
 
     def test_all_returns_dict(self):
         self.assertIsInstance(storage.all(), dict)
@@ -49,10 +55,12 @@ class TestFileStorage(unittest.TestCase):
 
     def test_reload_restores_objects(self):
         model = BaseModel()
+        key = "BaseModel.{}".format(model.id)
         storage.save()
-        FileStorage._FileStorage__objects = {}
+        storage.all().clear()
+        self.assertNotIn(key, storage.all())
         storage.reload()
-        self.assertIn("BaseModel.{}".format(model.id), storage.all())
+        self.assertIn(key, storage.all())
 
     def test_reload_without_file_does_not_raise(self):
         storage.reload()
